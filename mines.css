@@ -1,0 +1,20 @@
+﻿.container {
+	width: 300px;	height: 300px;
+	outline: 1px solid black;
+}
+.field {
+	width: 200px;	height: 200px;
+	outline: 1px solid black;
+}
+.cell {
+	float: left;
+	outline: 1px solid black;
+	width: 12.5%;	height: 12.5%;
+	display: table;
+}
+.text {
+	display: table-cell;
+	vertical-align: middle;
+	text-align:  center;
+	font-size: 200%;
+}
