@@ -10,11 +10,5 @@
 	float: left;
 	outline: 1px solid black;
 	width: 12.5%;	height: 12.5%;
-	display: table;
-}
-.text {
-	display: table-cell;
-	vertical-align: middle;
 	text-align:  center;
-	font-size: 200%;
 }
