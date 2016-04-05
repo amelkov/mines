@@ -1,7 +1,7 @@
 ﻿var numberMines = 10;
 var columns = 8, rows = 8;
 var field = [];
-var countMoves = columns * rows - numberMines;
+var countMoves;
 
 var container = document.createElement("div");
 container.className = 'container';
