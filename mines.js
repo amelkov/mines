@@ -2,6 +2,8 @@
 var columns = 8, rows = 8;
 var field = [];
 var countMoves;
+var timer = 0;
+var timerId;
 
 var container = document.createElement("div");
 container.className = 'container';
@@ -26,17 +28,23 @@ for(i = 0; i < rows; i++){
 	}
 }
 
-var testCounter = document.createElement("div");
-testCounter.id = 'counter';
-testCounter.className = 'counter';
-testCounter.innerHTML = countMoves;
-container.appendChild(testCounter);
+var counterView = document.createElement("div");
+counterView.id = 'counter';
+counterView.className = 'counter';
+counterView.innerHTML = countMoves;
+container.appendChild(counterView);
+
+var timerView = document.createElement("div");
+timerView.id = 'timer';
+timerView.className = 'timer';
+timerView.innerHTML = timer;
+container.appendChild(timerView);
 
 var btnNewGame = document.createElement("div");
 btnNewGame.id = 'newgame';
 btnNewGame.className = 'buttonNewGame';
 btnNewGame.innerHTML = "New game";
-btnNewGame.addEventListener('click', function(){createField();});
+btnNewGame.addEventListener('click', function(){clearInterval(timerId);createField();});
 container.appendChild(btnNewGame);
 
 createField();
@@ -45,11 +53,21 @@ function createField(){
 	countMoves = columns * rows - numberMines;
 	document.getElementById("counter").innerHTML = "Empty cells to open: "+countMoves;
 	
+	timer = 0;
+	document.getElementById("timer").innerHTML = "Time: "+timer;
+	
+	timerId = setInterval(function() {
+		timer++;
+		document.getElementById("timer").innerHTML = "Time: "+timer;
+		if(countMoves == 0){clearInterval(timerId);}
+	}, 1000);
+	
 	for(i = 0; i < rows; i++){
 		field[i] = [];
 		for(j = 0; j < columns; j++){
 			field[i][j] = 0;
 			setCell(i,j,"");
+			setCellActive(i,j,false);
 		}
 	}
 
@@ -98,6 +116,7 @@ function clickCell(i,j){
 		endGame(false);
 	}else if(isCellVallue(i,j,"")){
 		setCell(i,j,field[i][j]);
+		setCellActive(i,j,true);
 		countMoves--;
 		document.getElementById("counter").innerHTML = "Empty cells to open: "+countMoves;
 		if(field[i][j] == 0){chain(i,j);}
@@ -133,6 +152,10 @@ function isCellVallue(i,j,vallue){
 
 function setCell(i,j,vallue){
 	document.getElementById("cell"+i+j).innerHTML = vallue;
+}
+
+function setCellActive(i,j,flag){
+	document.getElementById("cell"+i+j).className = "cell"+(flag?" active":"");
 }
 
 function endGame(flag){

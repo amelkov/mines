@@ -2,6 +2,7 @@
 	width: 300px;	height: 300px;
 	outline: 1px solid black;
 	position: relative;
+	background: #d9d9d9;
 }
 .field {
 	width: 200px;	height: 200px;
@@ -14,14 +15,25 @@
 	outline: 1px solid black;
 	width: 12.5%;	height: 12.5%;
 	text-align:  center;
+	background: #c0c0c0;d9d9d9
+}
+.active {
+    background: #ffffff;
 }
 .counter {
 	position: absolute;
-	bottom: 25px; left: 25px;
+	bottom: 30px; left: 20px;
+}
+.timer {
+	position: absolute;
+	bottom: 10px; left: 20px;
 }
 .buttonNewGame {
 	position: absolute;
-	bottom: 25px; right: 25px;
+	bottom: 25px; right: 20px;
 	padding: 2px;
-	outline: 2px solid black;
+	outline: 2px outset gray;
+}
+.buttonNewGame:active {
+	outline: 2px inset gray;
 }
