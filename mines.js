@@ -1,7 +1,7 @@
 ﻿var numberMines = 10;
 var columns = 8, rows = 8;
 var field = [];
-var countMoves = 0;
+var countMoves = columns * rows - numberMines;
 
 var container = document.createElement("div");
 container.className = 'container';
@@ -28,15 +28,22 @@ for(i = 0; i < rows; i++){
 
 var testCounter = document.createElement("div");
 testCounter.id = 'counter';
+testCounter.className = 'counter';
 testCounter.innerHTML = countMoves;
 container.appendChild(testCounter);
 
+var btnNewGame = document.createElement("div");
+btnNewGame.id = 'newgame';
+btnNewGame.className = 'buttonNewGame';
+btnNewGame.innerHTML = "New game";
+btnNewGame.addEventListener('click', function(){createField();});
+container.appendChild(btnNewGame);
+
 createField();
 
-//x(-1) - мина или число
 function createField(){
-	countMoves = 0;
-	document.getElementById("counter").innerHTML = countMoves;
+	countMoves = columns * rows - numberMines;
+	document.getElementById("counter").innerHTML = "Empty cells to open: "+countMoves;
 	
 	for(i = 0; i < rows; i++){
 		field[i] = [];
@@ -86,14 +93,15 @@ function countMines(i,j){
 }
 
 function clickCell(i,j){
+	if(countMoves != 0)
 	if(field[i][j] == -1){
 		defeat();
 	}else if(document.getElementById("cell"+i+j).innerHTML == ''){
 		document.getElementById("cell"+i+j).innerHTML = field[i][j];
-		countMoves++;
-		document.getElementById("counter").innerHTML = countMoves;
+		countMoves--;
+		document.getElementById("counter").innerHTML = "Empty cells to open: "+countMoves;
 		if(field[i][j] == 0){chain(i,j);}
-		if(countMoves == columns*rows-numberMines){win();}
+		if(countMoves == 0){win();}
 	}
 }
 
@@ -111,6 +119,7 @@ function chain(i,j){
 }
 
 function rightClickCell(i,j){
+	if(countMoves != 0)
 	if(document.getElementById("cell"+i+j).innerHTML == ''){
 		document.getElementById("cell"+i+j).innerHTML = "p";
 	}else if(document.getElementById("cell"+i+j).innerHTML == "p"){
@@ -126,11 +135,17 @@ function defeat(){
 			}
 		}
 	}
-	alert("u lose");
-	createField();
+	countMoves = 0;
+	alert("You lose");
 }
 
 function win(){
-	alert("u win");
-	createField();
+	for(i = 0; i < rows; i++){
+		for(j = 0; j < columns; j++){
+			if(field[i][j] == -1){
+				document.getElementById("cell"+i+j).innerHTML = "*";
+			}
+		}
+	}
+	alert("You win");
 }
