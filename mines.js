@@ -49,7 +49,7 @@ function createField(){
 		field[i] = [];
 		for(j = 0; j < columns; j++){
 			field[i][j] = 0;
-			document.getElementById("cell"+i+j).innerHTML = "";
+			setCell(i,j,"");
 		}
 	}
 
@@ -95,57 +95,54 @@ function countMines(i,j){
 function clickCell(i,j){
 	if(countMoves != 0)
 	if(field[i][j] == -1){
-		defeat();
-	}else if(document.getElementById("cell"+i+j).innerHTML == ''){
-		document.getElementById("cell"+i+j).innerHTML = field[i][j];
+		endGame(false);
+	}else if(isCellVallue(i,j,"")){
+		setCell(i,j,field[i][j]);
 		countMoves--;
 		document.getElementById("counter").innerHTML = "Empty cells to open: "+countMoves;
 		if(field[i][j] == 0){chain(i,j);}
-		if(countMoves == 0){win();}
+		if(countMoves == 0){endGame(true);}
 	}
 }
 
 function chain(i,j){
-	if(i > 0 && j > 0 && document.getElementById("cell"+(i-1)+(j-1)).innerHTML == ''){clickCell(i-1,j-1);}
-	if(i > 0 && document.getElementById("cell"+(i-1)+j).innerHTML == ''){clickCell(i-1,j);}
-	if(i > 0 && j < columns-1 && document.getElementById("cell"+(i-1)+(j+1)).innerHTML == ''){clickCell(i-1,j+1);}
+	if(i > 0 && j > 0 && isCellVallue(i-1,j-1,"")){clickCell(i-1,j-1);}
+	if(i > 0 && isCellVallue(i-1,j,"")){clickCell(i-1,j);}
+	if(i > 0 && j < columns-1 && isCellVallue(i-1,j+1,"")){clickCell(i-1,j+1);}
 	
-	if(j > 0 && document.getElementById("cell"+i+(j-1)).innerHTML == ''){clickCell(i,j-1);}
-	if(j < columns-1 && document.getElementById("cell"+i+(j+1)).innerHTML == ''){clickCell(i,j+1);}
+	if(j > 0 && isCellVallue(i,j-1,"")){clickCell(i,j-1);}
+	if(j < columns-1 && isCellVallue(i,j+1,"")){clickCell(i,j+1);}
 	
-	if(i < rows-1 && j > 0 && document.getElementById("cell"+(i+1)+(j-1)).innerHTML == ''){clickCell(i+1,j-1);}
-	if(i < rows-1 && document.getElementById("cell"+(i+1)+j).innerHTML == ''){clickCell(i+1,j);}
-	if(i < rows-1 && j < columns-1 && document.getElementById("cell"+(i+1)+(j+1)).innerHTML == ''){clickCell(i+1,j+1);}
+	if(i < rows-1 && j > 0 && isCellVallue(i+1,j-1,"")){clickCell(i+1,j-1);}
+	if(i < rows-1 && isCellVallue(i+1,j,"")){clickCell(i+1,j);}
+	if(i < rows-1 && j < columns-1 && isCellVallue(i+1,j+1,"")){clickCell(i+1,j+1);}
 }
 
 function rightClickCell(i,j){
 	if(countMoves != 0)
-	if(document.getElementById("cell"+i+j).innerHTML == ''){
-		document.getElementById("cell"+i+j).innerHTML = "p";
-	}else if(document.getElementById("cell"+i+j).innerHTML == "p"){
-		document.getElementById("cell"+i+j).innerHTML = "";
+	if(isCellVallue(i,j,"")){
+		setCell(i,j,"p");
+	}else if(isCellVallue(i,j,"p")){
+		setCell(i,j,"");
 	}
 }
 
-function defeat(){
+function isCellVallue(i,j,vallue){
+	return document.getElementById("cell"+i+j).innerHTML == vallue;
+}
+
+function setCell(i,j,vallue){
+	document.getElementById("cell"+i+j).innerHTML = vallue;
+}
+
+function endGame(flag){
 	for(i = 0; i < rows; i++){
 		for(j = 0; j < columns; j++){
 			if(field[i][j] == -1){
-				document.getElementById("cell"+i+j).innerHTML = "*";
+				setCell(i,j,"*");
 			}
 		}
 	}
 	countMoves = 0;
-	alert("You lose");
-}
-
-function win(){
-	for(i = 0; i < rows; i++){
-		for(j = 0; j < columns; j++){
-			if(field[i][j] == -1){
-				document.getElementById("cell"+i+j).innerHTML = "*";
-			}
-		}
-	}
-	alert("You win");
+	alert(flag?"You win":"You lose");
 }
