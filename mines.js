@@ -112,9 +112,10 @@ function countMines(i,j){
 
 function clickCell(i,j){
 	if(countMoves != 0)
+	if(isCellVallue(i,j,""))
 	if(field[i][j] == -1){
 		endGame(false);
-	}else if(isCellVallue(i,j,"")){
+	}else{
 		setCell(i,j,field[i][j]);
 		setCellActive(i,j,true);
 		countMoves--;
