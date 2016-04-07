@@ -5,50 +5,104 @@ var countMoves;
 var timer = 0;
 var timerId;
 
-var container = document.createElement("div");
-container.className = 'container';
-container.id = 'container';
-document.body.appendChild(container);
-
-var fieldView = document.createElement("div");
-fieldView.className = 'field';
-fieldView.id = 'field';
-container.appendChild(fieldView);
-
-for(i = 0; i < rows; i++){
-	for(j = 0; j < columns; j++){
-		(function (i,j) {
-			var cell = document.createElement("div");
-			cell.className = 'cell';
-			cell.id = 'cell'+i+j;
-			fieldView.appendChild(cell);
-			cell.addEventListener('click', function(){clickCell(i,j)});
-			cell.addEventListener('contextmenu', function(ev){ev.preventDefault(); rightClickCell(i,j);});
-		}(i,j));
+window.onload=function(){
+	var container = document.createElement("div");
+	container.className = 'container';
+	container.id = 'container';
+	document.body.appendChild(container);
+	
+	var fieldView = document.createElement("div");
+	fieldView.className = 'field';
+	fieldView.id = 'field';
+	container.appendChild(fieldView);
+	
+	//Create matrix of objects and add div element in it
+	for(var i = 0; i < rows; i++){
+		field[i] = [];
+		for(var j = 0; j < columns; j++){
+			(function (i,j) {
+				var cell = document.createElement("div");
+				cell.className = 'cell';
+				fieldView.appendChild(cell);
+				cell.addEventListener('click', function(){
+					clickCell(i,j);
+				});
+				cell.addEventListener('contextmenu', function(ev){
+					ev.preventDefault();
+					rightClickCell(i,j);
+				});
+				field[i][j] = new Cell(i, j, cell);
+			}(i,j));
+		}
 	}
+	
+	//Create element for counting open cells
+	var counterView = document.createElement("div");
+	counterView.id = 'counter';
+	counterView.className = 'counter';
+	container.appendChild(counterView);
+	
+	//Create element for timer
+	var timerView = document.createElement("div");
+	timerView.id = 'timer';
+	timerView.className = 'timer';
+	timerView.innerHTML = timer;
+	container.appendChild(timerView);
+	
+	//Create element for starting new game
+	var btnNewGame = document.createElement("div");
+	btnNewGame.id = 'newgame';
+	btnNewGame.className = 'buttonNewGame';
+	btnNewGame.innerHTML = "New game";
+	btnNewGame.addEventListener('click', function(){
+		clearInterval(timerId);
+		createField();
+	});
+	container.appendChild(btnNewGame);
+
+	createField();
 }
 
-var counterView = document.createElement("div");
-counterView.id = 'counter';
-counterView.className = 'counter';
-counterView.innerHTML = countMoves;
-container.appendChild(counterView);
+//Constructor for cells
+function Cell(i, j, cellView){
+	this.i = i;
+	this.j = j;
+	this.cellView = cellView;
+	this.isBomb = false;
+	this.isActive = false;
+	this.countBombsAround = 0;
+}
 
-var timerView = document.createElement("div");
-timerView.id = 'timer';
-timerView.className = 'timer';
-timerView.innerHTML = timer;
-container.appendChild(timerView);
+Cell.prototype.setCell = function(vallue){
+	this.cellView.innerHTML = vallue;
+}
+	
+Cell.prototype.isCell = function(value){
+	return this.cellView.innerHTML == value;
+}
+	
+Cell.prototype.changeCellActive = function(){
+	this.isActive = !this.isActive;
+	this.cellView.classList.toggle("active");
+}
+	
+Cell.prototype.openCell = function(){
+	if(!this.isActive){
+		this.changeCellActive();
+		this.setCell(this.countBombsAround);
+	}
+}
+	
+Cell.prototype.resetCell = function(){
+	if(this.isActive){
+		this.changeCellActive();
+	}
+	this.isBomb = false;
+	this.countBombsAround = 0
+	this.setCell("");
+}
 
-var btnNewGame = document.createElement("div");
-btnNewGame.id = 'newgame';
-btnNewGame.className = 'buttonNewGame';
-btnNewGame.innerHTML = "New game";
-btnNewGame.addEventListener('click', function(){clearInterval(timerId);createField();});
-container.appendChild(btnNewGame);
-
-createField();
-
+//Create new game
 function createField(){
 	countMoves = columns * rows - numberMines;
 	document.getElementById("counter").innerHTML = "Empty cells to open: "+countMoves;
@@ -57,31 +111,33 @@ function createField(){
 	document.getElementById("timer").innerHTML = "Time: "+timer;
 	
 	timerId = setInterval(function() {
-		timer++;
-		document.getElementById("timer").innerHTML = "Time: "+timer;
-		if(countMoves == 0){clearInterval(timerId);}
+		if(countMoves == 0){
+			clearInterval(timerId);
+		}else{
+			timer++;
+			document.getElementById("timer").innerHTML = "Time: "+timer;
+		}
 	}, 1000);
 	
-	for(i = 0; i < rows; i++){
-		field[i] = [];
+	for(var i = 0; i < rows; i++){
 		for(j = 0; j < columns; j++){
-			field[i][j] = 0;
-			setCell(i,j,"");
-			setCellActive(i,j,false);
+			field[i][j].resetCell();
 		}
 	}
 
-	for(i = 0; i < numberMines; i++){
+	for(var i = 0; i < numberMines; i++){
 		var xy = randomCell();
-		if(field[xy[0]][xy[1]] == 0){
-			field[xy[0]][xy[1]] = -1;
-		}else {i--;}
+		if(!field[xy[0]][xy[1]].isBomb){
+			field[xy[0]][xy[1]].isBomb = true;
+		}else {
+			i--;
+		}
 	}
 	
-	for(i = 0; i < rows; i++){
+	for(var i = 0; i < rows; i++){
 		for(j = 0; j < columns; j++){
-			if(field[i][j] != -1){
-				field[i][j] = countMines(i,j);
+			if(!field[i][j].isBomb){
+				field[i][j].countBombsAround = countBombs(i, j);
 			}
 		}
 	}
@@ -91,79 +147,119 @@ function randomCell(){
 	return [Math.floor(Math.random() * 8), Math.floor(Math.random() * 8)];
 }
 
-function countMines(i,j){
-	if(field[i][j] == -1){return -1;}
+//Return number of bombs around this cell
+function countBombs(i, j){
+	if(field[i][j].isBomb){
+		return -1;
+	}
 	
 	var count = 0;
 	
-	if(i > 0 && j > 0 && field[i-1][j-1] == -1){count++;}
-	if(i > 0 && field[i-1][j] == -1){count++;}
-	if(i > 0 && j < columns-1 && field[i-1][j+1] == -1){count++;}
+	if(i > 0){
+		if(j > 0 && field[i-1][j-1].isBomb){
+			count++;
+		}
+		if(field[i-1][j].isBomb){
+			count++;
+		}
+		if(j < columns-1 && field[i-1][j+1].isBomb){
+			count++;
+		}
+	}
 	
-	if(j > 0 && field[i][j-1] == -1){count++;}
-	if(j < columns-1 && field[i][j+1] == -1){count++;}
+	if(j > 0 && field[i][j-1].isBomb){
+		count++;
+	}
+	if(j < columns-1 && field[i][j+1].isBomb){
+		count++;
+	}
 	
-	if(i < rows-1 && j > 0 && field[i+1][j-1] == -1){count++;}
-	if(i < rows-1 && field[i+1][j] == -1){count++;}
-	if(i < rows-1 && j < columns-1 && field[i+1][j+1] == -1){count++;}
+	if(i < rows-1){
+		if(j > 0 && field[i+1][j-1].isBomb){
+			count++;
+		}
+		if(field[i+1][j].isBomb){
+			count++;
+		}
+		if(j < columns-1 && field[i+1][j+1].isBomb){
+			count++;
+		}
+	}
 	
 	return count;
 }
 
-function clickCell(i,j){
-	if(countMoves != 0)
-	if(isCellVallue(i,j,""))
-	if(field[i][j] == -1){
+function clickCell(i, j){
+	if(countMoves != 0 && !field[i][j].isActive)
+	if(field[i][j].isBomb){
 		endGame(false);
 	}else{
-		setCell(i,j,field[i][j]);
-		setCellActive(i,j,true);
+		field[i][j].openCell();
 		countMoves--;
 		document.getElementById("counter").innerHTML = "Empty cells to open: "+countMoves;
-		if(field[i][j] == 0){chain(i,j);}
-		if(countMoves == 0){endGame(true);}
+		if(field[i][j].countBombsAround == 0){
+			chain(i,j);
+		}
+		if(countMoves == 0){
+			endGame(true);
+		}
 	}
 }
 
-function chain(i,j){
-	if(i > 0 && j > 0 && isCellVallue(i-1,j-1,"")){clickCell(i-1,j-1);}
-	if(i > 0 && isCellVallue(i-1,j,"")){clickCell(i-1,j);}
-	if(i > 0 && j < columns-1 && isCellVallue(i-1,j+1,"")){clickCell(i-1,j+1);}
+//Open all cells around the one at i, j 
+function chain(i, j){
+
+	if(i > 0){
+		if(j > 0 && !field[i-1][j-1].isActive){
+			clickCell(i-1, j-1);
+		}
+		if(!field[i-1][j].isActive){
+			clickCell(i-1, j);
+		}
+		if(j < columns-1 && !field[i-1][j+1].isActive){
+			clickCell(i-1, j+1);
+		}
 	
-	if(j > 0 && isCellVallue(i,j-1,"")){clickCell(i,j-1);}
-	if(j < columns-1 && isCellVallue(i,j+1,"")){clickCell(i,j+1);}
+	}
 	
-	if(i < rows-1 && j > 0 && isCellVallue(i+1,j-1,"")){clickCell(i+1,j-1);}
-	if(i < rows-1 && isCellVallue(i+1,j,"")){clickCell(i+1,j);}
-	if(i < rows-1 && j < columns-1 && isCellVallue(i+1,j+1,"")){clickCell(i+1,j+1);}
+	if(j > 0 && !field[i][j-1].isActive){
+		clickCell(i, j-1);
+	}
+	if(j < columns-1 && !field[i][j+1].isActive){
+		clickCell(i, j+1);
+	}
+	
+	if(i < rows-1 ){
+		if(j > 0 && !field[i+1][j-1].isActive){
+			clickCell(i+1, j-1);
+		}
+		if(!field[i+1][j].isActive){
+			clickCell(i+1, j);
+		}
+		if(j < columns-1 && !field[i+1][j+1].isActive){
+			clickCell(i+1, j+1);
+		}
+	}
 }
 
-function rightClickCell(i,j){
+//Place or remove flag on cell i, j 
+function rightClickCell(i, j){
 	if(countMoves != 0)
-	if(isCellVallue(i,j,"")){
-		setCell(i,j,"p");
-	}else if(isCellVallue(i,j,"p")){
-		setCell(i,j,"");
+	if(!field[i][j].isActive){
+		if(field[i][j].isCell("p")){
+			field[i][j].setCell("");
+		}else{
+			field[i][j].setCell("p");
+		}
 	}
 }
 
-function isCellVallue(i,j,vallue){
-	return document.getElementById("cell"+i+j).innerHTML == vallue;
-}
-
-function setCell(i,j,vallue){
-	document.getElementById("cell"+i+j).innerHTML = vallue;
-}
-
-function setCellActive(i,j,flag){
-	document.getElementById("cell"+i+j).className = "cell"+(flag?" active":"");
-}
-
+//Stop the game and show all bombs
 function endGame(flag){
 	for(i = 0; i < rows; i++){
 		for(j = 0; j < columns; j++){
-			if(field[i][j] == -1){
-				setCell(i,j,"*");
+			if(field[i][j].isBomb){
+				field[i][j].setCell("*");
 			}
 		}
 	}
